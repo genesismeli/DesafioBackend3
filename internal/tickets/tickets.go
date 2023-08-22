@@ -1,55 +1,79 @@
 package tickets
 
 import (
+	"fmt"
 	"os"
+	"strconv"
 	"strings"
-
-	"github.com/genesismeli/DesafioBackend3/internal/tickets"
 )
 
-
-
 type Ticket struct {
-
-	id string
-	nombre string
-	email string
-	paisDestino string 
-	horaVuelo string
-	precio string
+	ID          string
+	Nombre      string
+	Email       string
+	PaisDestino string
+	HoraVuelo   string
+	Precio      string
 }
 
 type Storage struct {
-	Ticket []Ticket
+	Tickets []Ticket
 }
 
-func readFile(filename string) []tickets.Ticket{
+func ReadFile(filename string) []Ticket {
+	file, err := os.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
 
-		file, err := os.ReadFile(filename)
+	data := strings.Split(string(file), "\n")
 
-		if err != nil {
-			panic(err)
-		}
-
-		data := strings.Split(string(file), "\n")
-
-		var resultado []tickets.Ticket 
-		for i := 0; i< len(data); i++ {
-			if len(data[i])>0 {
-				file := strings.Split(string(data[i]), ",")
-				tickets := tickets.Ticket{
-						id: file[0],
-						nombre: file[1],
-						email: file[2],
-						paisDestino: file[3], 
-						horaVuelo: file[4],
-						precio: file[5],
+	var resultado []Ticket
+	for i := 0; i < len(data); i++ {
+		if len(data[i]) > 0 {
+			fields := strings.Split(data[i], ",")
+			if len(fields) >= 6 {
+				ticket := Ticket{
+					ID:          fields[0],
+					Nombre:      fields[1],
+					Email:       fields[2],
+					PaisDestino: fields[3],
+					HoraVuelo:   fields[4],
+					Precio:      fields[5],
 				}
-				resultado = append(resultado, tickets)
+				resultado = append(resultado, ticket)
+			} else {
+				fmt.Printf("Error en la línea %d: no hay suficientes campos\n", i+1)
 			}
 		}
-		return resultado
+	}
+	return resultado
+}
+func CountTravelers(tickets []Ticket, country string) int {
+	count := 0
+	for _, ticket := range tickets {
+		if ticket.PaisDestino == country {
+			count++
+		}
+	}
+
+	return count
 }
 
+func CountByTimeRange(tickets []Ticket, startHour, endHour int) int {
+	count := 0
 
+	for _, ticket := range tickets {
+		hourStr := strings.Split(ticket.HoraVuelo, ":")[0]
+		hour, err := strconv.Atoi(hourStr)
+		if err != nil {
+			continue
+		}
 
+		if hour >= startHour && hour <= endHour {
+			count++
+		}
+	}
+
+	return count
+}
