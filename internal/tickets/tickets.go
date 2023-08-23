@@ -1,6 +1,7 @@
 package tickets
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -49,18 +50,25 @@ func ReadFile(filename string) []Ticket {
 	}
 	return resultado
 }
-func CountTravelers(tickets []Ticket, country string) int {
+
+// Requerimiento 1
+func (s Storage) CountTravelers(country string, tickets []Ticket) (int, error) {
 	count := 0
-	for _, ticket := range tickets {
+	for _, ticket := range s.Tickets {
 		if ticket.PaisDestino == country {
 			count++
 		}
 	}
-
-	return count
+	if count == 0 {
+		return count, errors.New("No se encontraron viajes en ese país")
+	}
+	return count, nil
 }
 
-func CountByTimeRange(tickets []Ticket, startHour, endHour int) int {
+
+//Requerimiento 2
+
+func (s Storage) CountByTimeRange(tickets []Ticket, startHour, endHour int) int {
 	count := 0
 
 	for _, ticket := range tickets {
@@ -77,3 +85,13 @@ func CountByTimeRange(tickets []Ticket, startHour, endHour int) int {
 
 	return count
 }
+
+// Requerimiento 3 
+func (s Storage) AverageDestination(destination string, tickets []Ticket) (float64, error) {
+	total, err := s.CountTravelers(destination, tickets)
+	if err != nil {
+		return 0.0, err
+	}
+	return (float64(total) * 100) / float64(len(s.Tickets)), nil
+}
+
